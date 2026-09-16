@@ -1,26 +1,4 @@
-const CACHE_NAME = 'cc-logistik-cache-v3.1';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './core.js',
-  './charts.js',
-  './config.js',
-  './assets/icon-192.png',
-  './assets/icon-512.png'
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
-  );
-});
-
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-});
+const CACHE='cc-logistik-v4.0.0',ASSETS=['./','./index.html','./styles.css','./modern.css','./core.js','./charts.js','./app.js','./config.js','./manifest.webmanifest','./assets/brand-logo.jpg','./assets/icon-192.png','./assets/icon-512.png'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>/^cc-logistik-/.test(k)&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{const url=new URL(e.request.url);if(e.request.method!=='GET'||url.origin!==self.location.origin)return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));}return r;}).catch(()=>caches.match(e.request).then(r=>r||new Response('Offline: buka aplikasi saat online terlebih dahulu.',{status:503}))));});
