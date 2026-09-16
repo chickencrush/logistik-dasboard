@@ -1,4 +1,18 @@
-# CC Logistik V4 — Professional UI
+# CC Logistik V4.1 — Mascot & Sidebar Fix
+
+## Perbaikan V4.1
+
+- Gambar mascot/logo tersemat sebagai data PNG di index.html. Tampilan tidak lagi bergantung hanya pada assets/brand-logo.jpg. Logo dinamis pada onboarding juga otomatis memakai gambar tersemat.
+- Sidebar memakai flex column. Menu berada di area scroll terpisah dan kotak SUMBER DATA tidak lagi absolute/menimpa Harga Bahan. CSS perbaikan juga disertakan di modern.css agar tidak bergantung hanya pada file tambahan.
+- Service worker memakai cache V4.1; koneksi dan cache data V3 tetap dipertahankan.
+
+### Cara update V4 ke V4.1
+
+1. Upload seluruh isi folder logistik_dashboard_v4_1 ke root repository GitHub lama. index.html harus di root; jangan upload ZIP atau folder induk saja.
+2. Pertahankan config.js lama jika sudah berisi API_URL. Apps Script/Spreadsheet tidak perlu diubah.
+3. Commit changes; tunggu GitHub Pages selesai deploy; tutup tab dashboard lama, buka kembali, lalu Ctrl+F5.
+4. Tetap upload folder assets untuk ikon PWA. Mascot dashboard sudah tersemat, tetapi ikon instalasi aplikasi tetap memakai file PNG di folder assets.
+5. Jika versi V4 masih muncul, hapus data situs khusus GitHub Pages melalui pengaturan browser. Ini menghapus cache/koneksi lokal, bukan Spreadsheet. Masukkan URL /exec kembali melalui tombol Koneksi.
 
 ## Pembaruan V4
 

@@ -1,0 +1,13 @@
+/* Footer mengikuti alur flex, bukan absolute yang menimpa menu. */
+#sidebar{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;padding:24px 18px;gap:0}
+#sidebar .brand{flex-shrink:0;min-height:59px}
+#sidebar .nav-label{flex-shrink:0;margin:30px 14px 10px}
+#sidebar nav{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 2px 12px;margin:0;scrollbar-width:thin;scrollbar-color:#435574 transparent;overscroll-behavior:contain}
+#sidebar nav button{flex-shrink:0;margin:6px 0;min-height:46px}
+#sidebar .sidebar-foot{position:static;inset:auto;flex:0 0 auto;min-height:0;margin:12px 0 0;padding:14px 15px;font-size:12px;line-height:1.6}
+#sidebar .source-label{margin-bottom:6px;font-size:9px}
+#sidebar #connection{display:block;margin-top:7px;font-size:11px;overflow-wrap:anywhere}
+.brand-image,.welcome-art img,.dialog-brand,.loading-orbit img{object-fit:contain}
+.welcome-art{min-height:0}.welcome-art img{height:auto;aspect-ratio:1 / 1;object-fit:contain}
+@media(max-height:650px){#sidebar{padding-top:16px;padding-bottom:16px}#sidebar .nav-label{margin-top:18px}#sidebar .sidebar-foot{padding:10px 13px;margin-top:8px}#sidebar nav button{min-height:42px;padding-top:10px;padding-bottom:10px}}
+@media(max-width:760px){#sidebar{padding:20px 16px}#sidebar nav{padding-bottom:8px}#sidebar .sidebar-foot{margin-top:10px}}
