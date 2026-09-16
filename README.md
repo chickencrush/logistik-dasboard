@@ -1,67 +1,41 @@
-# Dashboard Logistik Chicken Crush — GitHub/PWA
+# CC Logistik V3 — Interactive PWA
 
-Aplikasi dashboard responsif untuk komputer dan handphone. Tampilan di-host gratis melalui GitHub Pages, sedangkan database tetap menggunakan Google Spreadsheet melalui Google Apps Script.
+Versi ini meneruskan V2 GitHub/PWA. Tidak berisi APK/EXE; aplikasi dipasang oleh browser melalui HTTPS. Tidak ada data dummy atau API URL pribadi di paket.
 
-## Fitur
+## Update dari V2
 
-- Sidebar dapat dibuka dan ditutup.
-- Grafik Canvas mandiri tanpa library atau CDN eksternal.
-- Data otomatis mengikuti perubahan Google Spreadsheet.
-- Refresh otomatis setiap 5 menit dan tombol muat ulang manual.
-- Dapat dipasang ke layar utama Android/komputer sebagai PWA.
-- Menyimpan data terakhir untuk tampilan saat koneksi terputus.
-- Filter periode, pencarian outlet, ranking outlet, order, persediaan, produksi, harga bahan, serta ekspor CSV.
+1. Download dan ekstrak paket V3. Simpan salinan repository V2 sebagai backup.
+2. Di Apps Script Spreadsheet lama, ganti Code.gs dengan apps-script/Code.gs dari V3. Simpan.
+3. Deploy > Manage deployments > pensil > New version > Deploy. Execute as Me; akses Anyone. Endpoint tetap sama jika deployment lama diperbarui. Spreadsheet tidak perlu dibuat ulang.
+4. Upload seluruh isi folder logistik_dashboard_v3 ke root repository GitHub lama. index.html harus di root, bukan di dalam folder tambahan. Jangan hanya upload ZIP.
+5. Commit changes. Pengaturan GitHub Pages tetap main / root.
+6. Buka URL GitHub Pages. Tekan Ctrl+F5. Bila masih muncul V2, hapus data situs GitHub Pages di pengaturan browser, lalu buka ulang (ini menghapus cache dashboard lokal, bukan Spreadsheet).
+7. Klik Koneksi, tempel URL Apps Script /exec, lalu Simpan & Hubungkan. Tidak perlu mencari config.js. Pengaturan ini disimpan per browser/perangkat; isi kembali di HP atau Incognito.
 
-## Bagian 1 — Pasang API pada Google Spreadsheet
+Alternatif: isi API_URL di config.js sebelum upload agar perangkat menggunakan endpoint default yang sama. Jangan mengunggah kredensial.
 
-1. Unggah file `LAPORAN BULANAN LOGISTIK.xlsx` ke Google Drive dan buka sebagai Google Spreadsheet.
-2. Pilih **Ekstensi > Apps Script**.
-3. Salin `apps-script/Code.gs` ke file `Code.gs`.
-4. Buka **Project Settings**, aktifkan **Show appsscript.json manifest file in editor**, lalu salin `apps-script/appsscript.json`.
-5. Jalankan fungsi `setupDashboard` satu kali dan izinkan akses.
-6. Pilih **Deploy > New deployment > Web app**.
-7. Atur **Execute as: Me** dan **Who has access: Anyone**.
-8. Klik **Deploy**, kemudian salin URL yang berakhiran `/exec`.
+## Pemasangan aplikasi
 
-## Bagian 2 — Hubungkan Aplikasi
+Klik Download / Pasang Aplikasi. Jika browser mendukung prompt instalasi, prompt akan tampil. Jika belum tersedia, tombol menampilkan petunjuk Android, iPhone, dan komputer. Dashboard harus dibuka via HTTPS GitHub Pages, bukan file lokal. Bukan unduhan APK/EXE. Opsi instalasi bergantung pada browser/perangkat; prompt tidak selalu tampil dan dapat tidak tersedia di Incognito.
 
-1. Buka file `config.js`.
-2. Ganti teks `TEMPEL_URL_APPS_SCRIPT_DI_SINI` dengan URL `/exec` dari langkah sebelumnya.
-3. Simpan perubahan.
+## Grafik
 
-Contoh:
+- Batang atau garis lewat pilihan Bentuk grafik.
+- Hover, sentuh, atau fokus dengan keyboard untuk tooltip angka.
+- Klik legenda untuk menampilkan/menyembunyikan seri.
+- Klik batang/titik periode invoice untuk memfilter order.
+- Klik outlet di grafik ranking untuk mengisi pencarian outlet.
+- Unduh grafik invoice sebagai SVG.
+- Animasi KPI dan grafik menghormati pengaturan reduced motion.
 
-```js
-window.DASHBOARD_CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbxxxxxxxx/exec',
-  REFRESH_MINUTES: 5,
-  APP_NAME: 'Dashboard Logistik Chicken Crush'
-};
-```
+## Data & batasan
 
-## Bagian 3 — Upload ke GitHub
+Order/ranking/KPI menggunakan tanggal order, bukan nama sheet PO. Kolom Periode Sumber tersedia untuk penelusuran. Produksi, stok, harga, dan pemakaian mengikuti nama bulan sumber (tahun tidak tersedia di beberapa tabel); filter outlet tidak diterapkan pada tabel tersebut. Stok tiap bahan tidak dijumlahkan menjadi satu angka. Fisik kosong tidak dianggap selisih negatif. Angka produksi ditampilkan sesuai sumber, tanpa otomatis mengubah angka ambigu seperti 13.925.
 
-1. Buat repository baru di GitHub, misalnya `dashboard-logistik`.
-2. Upload seluruh isi folder ini ke repository, jangan hanya folder `apps-script`.
-3. Buka **Settings > Pages**.
-4. Pada **Build and deployment**, pilih **Deploy from a branch**.
-5. Pilih branch **main**, folder **/(root)**, lalu klik **Save**.
-6. Tunggu sekitar 1–3 menit. Alamat aplikasi akan berbentuk:
-   `https://USERNAME.github.io/dashboard-logistik/`
+Cache data terakhir hanya ditampilkan jika pernah sukses terhubung ke endpoint yang sama. Tampilan offline bukan data live. Koneksi gagal tidak menutup dashboard. Pembaruan otomatis setiap 5 menit saat tab aktif dan online; tombol Muat Ulang meminta data tanpa cache server. Ekstensi, sesi akun, DNS, dan pembatasan jaringan browser tetap dapat memblokir Apps Script; aplikasi tidak melewati pembatasan tersebut.
 
-## Memasang di Handphone
+API publik Anyone memungkinkan pembacaan data oleh siapa pun dengan URL. GitHub Pages/PWA ini tidak menyediakan autentikasi internal. Jangan gunakan untuk data rahasia tanpa lapisan autentikasi tambahan. Cache data tersimpan di perangkat; gunakan perangkat tepercaya.
 
-- Android/Chrome: buka URL aplikasi, tekan menu browser, lalu **Tambahkan ke layar utama** atau tombol **Pasang Aplikasi**.
-- iPhone/Safari: tekan **Share**, kemudian **Add to Home Screen**.
-- Komputer/Chrome: klik ikon instalasi di sisi kanan address bar jika tersedia.
+## Pengujian lokal
 
-## Memperbarui Data
-
-Edit data langsung pada Google Spreadsheet. Dashboard akan membaca data terbaru setiap 5 menit. Gunakan tombol **Muat Ulang** untuk melihat perubahan saat itu juga.
-
-Jika kode Apps Script diubah, buka **Deploy > Manage deployments > Edit**, pilih **New version**, lalu deploy kembali. URL `/exec` tetap dapat digunakan.
-
-## Catatan Keamanan
-
-Deployment `Anyone` berarti data yang dikirim oleh API dapat dibaca oleh orang yang mengetahui URL aplikasi. Jangan menaruh data pribadi atau rahasia di spreadsheet sumber. Untuk akses internal terbatas, gunakan akun Google Workspace dan ubah kebijakan deployment sesuai organisasi.
-
+`node tests/core.test.cjs` dan `node tests/backend.test.cjs`. Jalankan dari root folder. Membuka file HTML lokal tidak cukup untuk menguji instalasi PWA/API; perlu HTTPS dan deployment Google nyata.
