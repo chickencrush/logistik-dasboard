@@ -2,11 +2,12 @@ const $=id=>document.getElementById(id),CFG=window.DASHBOARD_CONFIG||{},fmt=n=>n
 const esc=s=>String(s??'—').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const monthLabel=m=>{const match=/^(\d{4})-(\d{2})$/.exec(m);return match?months[+match[2]-1]+' '+match[1]:m;};
+document.title='CC Logistik • V4.2';
 let DATA=null,busy=false,installPrompt=null,currentPage='overview';
 function read(key){try{return localStorage.getItem(key);}catch{return null;}}
 function write(key,value){try{localStorage.setItem(key,value);return true;}catch{return false;}}
 function notice(message,type=''){const el=$('notice');el.textContent=message;el.className='notice '+type;}
-function api(){return read('ccLogistikApiV3')||CFG.API_URL||'';}
+function api(){return CFG.AUTO_CONNECT ? (CFG.API_URL||'') : (read('ccLogistikApiV3')||CFG.API_URL||'');}
 function validApi(url){try{const u=new URL(url);return u.protocol==='https:'&&u.hostname==='script.google.com'&&/^\/macros\/s\/[^/]+\/exec$/.test(u.pathname);}catch{return false;}}
 function setBusy(value){busy=value;$('refreshBtn').disabled=value;$('refreshBtn').classList.toggle('busy',value);$('refreshBtn').textContent=value?'↻ Menghubungkan…':'↻ Muat Ulang';$('brandLoading').hidden=!value;document.querySelector('main').setAttribute('aria-busy',String(value));}
 function jsonp(url,force){return new Promise((resolve,reject)=>{
@@ -20,7 +21,7 @@ function jsonp(url,force){return new Promise((resolve,reject)=>{
 });}
 function validateData(d){if(!d||!Array.isArray(d.orders)||!d.meta)throw new Error('Format data tidak sesuai. Gunakan backend V3 atau V2 GitHub.');}
 async function load(force=false){
-  if(busy)return;if(!validApi(api())){notice('API belum dihubungkan. Klik Koneksi dan tempel URL Apps Script /exec.','error');$('connection').textContent='Belum dikonfigurasi';return;}
+  if(busy)return;if(!validApi(api())){notice('Konfigurasi koneksi aplikasi tidak valid. Hubungi pengelola aplikasi.','error');$('connection').textContent='Konfigurasi tidak valid';return;}
   setBusy(true);notice(DATA?'Memperbarui data tanpa menutup dashboard…':'Mengambil data Spreadsheet…');
   try{const d=await jsonp(api(),force);validateData(d);DATA=d;write('ccLogistikCacheV3',JSON.stringify({api:api(),data:d}));renderFilters();render();$('updated').textContent='Data dibaca: '+d.meta.updatedAt;$('connection').textContent='● Terhubung';notice('Terhubung. Pembaruan otomatis setiap '+(Number(CFG.REFRESH_MINUTES)||5)+' menit.');}
   catch(e){$('connection').textContent=DATA?'● Data terakhir':'● Koneksi gagal';notice(e.message+(DATA?' Data terakhir tetap ditampilkan; bukan data live.':''),DATA?'offline':'error');}
@@ -31,7 +32,7 @@ function rows(){return DATA?CC.filterOrders(DATA,$('monthFilter').value,$('searc
 function periodRows(a){const period=$('monthFilter').value;if(period==='all')return a;const name=months[Number(period.slice(5))-1].toLowerCase();return a.filter(x=>String(x.month).toLowerCase().replace(/2$/,'').trim().startsWith(name));}
 function table(id,data,cols){if(!data.length){$(id).innerHTML='<div class="empty">Tidak ada data pada filter ini.</div>';return;}$(id).innerHTML='<table><thead><tr>'+cols.map(c=>'<th>'+c[0]+'</th>').join('')+'</tr></thead><tbody>'+data.map(x=>'<tr>'+cols.map(c=>{let v=x[c[1]],t=c[2];v=v===null||v===undefined?'—':t==='rp'?rp(v):t==='n'?fmt(v):t==='pct'?fmt(v)+'%':v;return '<td class="'+(t?'num':'')+'">'+esc(v)+'</td>';}).join('')+'</tr>').join('')+'</tbody></table>';}
 function render(){
-  if(!DATA){document.querySelectorAll('.table-wrap,.chart').forEach(el=>el.replaceChildren());$('alerts').replaceChildren();$('updated').textContent='Belum memuat data dari koneksi ini.';$('kpis').innerHTML='<article class="card onboarding"><img src="assets/brand-logo.jpg" alt="CC Logistik"><div><h2>Selamat datang di CC Logistik</h2><p>Hubungkan Google Spreadsheet untuk menampilkan invoice, order mitra, dan kondisi operasional. Tidak ada angka contoh yang ditampilkan sebagai data aktual.</p><button id="connectWelcome" class="button primary">Hubungkan Spreadsheet →</button></div></article>';$('connectWelcome').onclick=()=>$('settingsBtn').click();return;}
+  if(!DATA){document.querySelectorAll('.table-wrap,.chart').forEach(el=>el.replaceChildren());$('alerts').replaceChildren();$('updated').textContent='Menunggu data Spreadsheet.';$('kpis').innerHTML='<article class="card onboarding"><img src="assets/brand-logo.jpg" alt="CC Logistik"><div><h2>Selamat datang di CC Logistik</h2><p>Aplikasi terkonfigurasi untuk menghubungkan Spreadsheet otomatis. Jika koneksi belum berhasil, periksa jaringan lalu coba muat ulang. Tidak perlu memasukkan URL.</p><button id="connectWelcome" class="button primary">Coba Muat Data →</button></div></article>';$('connectWelcome').onclick=()=>load(true);return;}
   const a=rows(),k=CC.kpi(a),ranking=CC.outlets(a),trend=CC.monthly(a),type=$('chartType').value;
   $('scopeLabel').textContent=$('monthFilter').value==='all'?'Semua periode':monthLabel($('monthFilter').value);
   $('kpis').innerHTML=[['Nilai Invoice',k.invoice,rp],['Pembayaran',k.paid,rp],['Selisih Pembayaran',k.balance,rp],['Jumlah Order',k.orders,fmt],['Outlet Aktif',k.outlets,fmt],['Rasio Pembayaran',k.rate,n=>fmt(n)+'%']].map(([name,n,f],i)=>'<article class="kpi" style="animation-delay:'+i*35+'ms"><span class="kpi-badge" aria-hidden="true">'+['↗','✓','!','▤','◫','%'][i]+'</span><small>'+name+'</small><strong data-target="'+n+'">'+f(n)+'</strong><p>Mengikuti filter order aktif</p></article>').join('');
@@ -54,7 +55,8 @@ $('closeMenu').onclick=closeNav;$('openMenu').onclick=openNav;$('overlay').oncli
 const titles={overview:'Ringkasan Logistik',orders:'Order & Mitra',inventory:'Persediaan',production:'Produksi',sales:'Pemakaian Barang',prices:'Harga Bahan'};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{currentPage=b.dataset.page;document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===currentPage));$('pageTitle').textContent=titles[currentPage];if(innerWidth<=760)closeNav();render();});
 ['monthFilter','chartType','itemFilter'].forEach(id=>$(id).onchange=render);let searchTimer;$('search').oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(render,200);};$('resetBtn').onclick=()=>{$('monthFilter').value='all';$('search').value='';render();};$('refreshBtn').onclick=()=>load(true);
-$('settingsBtn').onclick=()=>{$('apiInput').value=validApi(api())?api():'';$('settings').showModal();};$('cancelSettings').onclick=()=>$('settings').close();$('settingsForm').onsubmit=e=>{e.preventDefault();const value=$('apiInput').value.trim();if(!validApi(value)){notice('URL harus https://script.google.com/macros/s/…/exec','error');return;}if(!write('ccLogistikApiV3',value)){notice('Browser tidak mengizinkan penyimpanan pengaturan. Aktifkan penyimpanan situs.','error');return;}DATA=null;$('settings').close();render();load(true);};
+$('settingsBtn').textContent='● Status Koneksi';
+$('settingsBtn').onclick=()=>{notice(busy?'Sedang menghubungkan database bawaan…':DATA?'Data terakhir: '+DATA.meta.updatedAt+'. Klik Muat Ulang untuk mengambil data terbaru.':'Koneksi sudah diatur otomatis. Klik Muat Ulang untuk mencoba mengambil data.');};
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;});$('installBtn').onclick=async()=>{if(installPrompt){await installPrompt.prompt();const choice=await installPrompt.userChoice;installPrompt=null;if(choice.outcome==='accepted')notice('Permintaan pemasangan aplikasi diterima browser.');}else $('installDialog').showModal();};$('closeInstall').onclick=()=>$('installDialog').close();addEventListener('appinstalled',()=>notice('Aplikasi berhasil dipasang.'));
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>notice('Mode offline belum aktif; dashboard online tetap dapat digunakan.','offline'));
 if(innerWidth<=760||read('ccNavClosed')==='1')closeNav();

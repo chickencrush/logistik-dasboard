@@ -1,70 +1,37 @@
-# CC Logistik V4.1 — Mascot & Sidebar Fix
+# CC Logistik V4.2 — Koneksi Otomatis
 
-## Perbaikan V4.1
+## Perubahan
+- URL Apps Script milik pengguna sudah ditetapkan dalam config.js.
+- Dashboard memuat data otomatis pada perangkat baru tanpa mengetik /exec.
+- Konfigurasi bawaan diprioritaskan; URL lama tersimpan per browser diabaikan.
+- Form input URL dihapus. Tombol Status Koneksi menampilkan status, bukan pengaturan.
+- Mascot tersemat dan perbaikan sidebar V4.1 tetap dipertahankan.
+- Tidak ada sistem login/autentikasi baru atau akses yang melewati izin Google.
 
-- Gambar mascot/logo tersemat sebagai data PNG di index.html. Tampilan tidak lagi bergantung hanya pada assets/brand-logo.jpg. Logo dinamis pada onboarding juga otomatis memakai gambar tersemat.
-- Sidebar memakai flex column. Menu berada di area scroll terpisah dan kotak SUMBER DATA tidak lagi absolute/menimpa Harga Bahan. CSS perbaikan juga disertakan di modern.css agar tidak bergantung hanya pada file tambahan.
-- Service worker memakai cache V4.1; koneksi dan cache data V3 tetap dipertahankan.
+## Cara update
+1. Ekstrak paket dan buka folder logistik_dashboard_v4_2.
+2. Upload SEMUA ISI folder ke root repository GitHub lama, termasuk config.js, assets, dan sw.js. Jangan hanya upload ZIP.
+3. PENTING: ganti config.js lama dengan file config.js paket ini. Jangan mempertahankan konfigurasi placeholder dari versi lama.
+4. Commit changes dan tunggu deployment GitHub Pages selesai.
+5. Tutup dashboard lama, buka URL Pages kembali, lalu Ctrl+F5. HP: tutup tab/PWA lalu buka ulang.
+6. Apps Script V3 dan Spreadsheet tidak perlu diubah jika deployment yang diberikan masih aktif dan mengizinkan API publik.
+7. Bila versi lama tetap tampil, hapus data situs KHUSUS dashboard GitHub Pages. Ini menghapus cache lokal, bukan data Spreadsheet. Koneksi tidak perlu diinput ulang karena sudah bawaan.
 
-### Cara update V4 ke V4.1
+## Memasang aplikasi
+Gunakan Download / Pasang Aplikasi pada HTTPS GitHub Pages. Ini PWA, bukan APK/EXE. Android menggunakan menu instalasi browser; iPhone melalui Share > Add to Home Screen. Ketersediaan instalasi bergantung pada browser.
 
-1. Upload seluruh isi folder logistik_dashboard_v4_1 ke root repository GitHub lama. index.html harus di root; jangan upload ZIP atau folder induk saja.
-2. Pertahankan config.js lama jika sudah berisi API_URL. Apps Script/Spreadsheet tidak perlu diubah.
-3. Commit changes; tunggu GitHub Pages selesai deploy; tutup tab dashboard lama, buka kembali, lalu Ctrl+F5.
-4. Tetap upload folder assets untuk ikon PWA. Mascot dashboard sudah tersemat, tetapi ikon instalasi aplikasi tetap memakai file PNG di folder assets.
-5. Jika versi V4 masih muncul, hapus data situs khusus GitHub Pages melalui pengaturan browser. Ini menghapus cache/koneksi lokal, bukan Spreadsheet. Masukkan URL /exec kembali melalui tombol Koneksi.
+## Batasan koneksi
+Internet tetap diperlukan untuk pembaruan. API harus memberi respons JSONP dari backend GitHub V3 atau V2 dan deployment publik yang valid. Koneksi otomatis tidak memperbaiki DNS, ekstensi, sesi multi-akun Google, atau kebijakan akses Google. Jika hanya Incognito yang berhasil, gunakan profil Chrome terpisah dan periksa ekstensi/sesi akun.
 
-## Pembaruan V4
+## Keamanan
+Endpoint tersimpan dalam kode publik GitHub. API ini tidak menyediakan autentikasi internal. Orang yang mengetahui URL dapat membaca data yang disediakan endpoint; jangan gunakan untuk data rahasia tanpa autentikasi tambahan. Data terakhir disimpan di perangkat untuk tampilan offline, bukan data live.
 
-UI baru: sidebar navy, ringkasan krem, kartu KPI dengan ikon, filter lebih rapi, tabel dan grafik ringan, serta loading non-blocking dengan logo CC Logistik yang disediakan pengguna. Logo asli digunakan tanpa perubahan kreatif; ikon PNG diperkecil dan dipasang pada kanvas persegi dengan gambar utuh. Loading tampil selama permintaan API dan menghilang pada sukses maupun gagal. Cache/pengaturan menggunakan kunci V3 agar koneksi sebelumnya tetap dikenali di browser dan alamat GitHub Pages yang sama.
+## Tes
+node tests/core.test.cjs
+node tests/backend.test.cjs
+node tests/charts.test.cjs
+node tests/ui.test.cjs
+node tests/brand-sidebar.test.cjs
+node tests/autoconnect.test.cjs
 
-### Update dari V3 (tanpa mengubah Spreadsheet)
-
-1. Backup file config.js lama bila berisi API_URL pribadi.
-2. Ekstrak paket ini; upload seluruh ISI folder logistik_dashboard_v4 ke root repository GitHub lama. index.html harus langsung di root.
-3. Pertahankan config.js lama bila sudah diisi, atau gunakan tombol Koneksi setelah dashboard terbuka.
-4. Commit, tunggu deployment Pages selesai, lalu Ctrl+F5.
-5. Backend Apps Script tetap V3, jadi tidak perlu mengganti Code.gs atau deployment untuk upgrade UI ini.
-6. Untuk ikon aplikasi baru: browser bisa mempertahankan ikon PWA lama. Bila belum berubah, hapus instalasi PWA lama lalu pasang kembali melalui URL GitHub Pages yang sama. Menghapus instalasi aplikasi tidak menghapus Spreadsheet.
-
-Kode Apps Script V3 tetap disertakan untuk pemasangan baru. Tidak ada fitur login baru; masalah sesi multi-akun Google tidak dapat diselesaikan hanya dengan upgrade UI.
-
-Versi ini meneruskan V2 GitHub/PWA. Tidak berisi APK/EXE; aplikasi dipasang oleh browser melalui HTTPS. Tidak ada data dummy atau API URL pribadi di paket.
-
-## Pemasangan backend bila sebelumnya masih V2
-
-1. Download dan ekstrak paket V3. Simpan salinan repository V2 sebagai backup.
-2. Di Apps Script Spreadsheet lama, ganti Code.gs dengan apps-script/Code.gs dari V3. Simpan.
-3. Deploy > Manage deployments > pensil > New version > Deploy. Execute as Me; akses Anyone. Endpoint tetap sama jika deployment lama diperbarui. Spreadsheet tidak perlu dibuat ulang.
-4. Upload seluruh isi folder logistik_dashboard_v4 ke root repository GitHub lama. index.html harus di root, bukan di dalam folder tambahan. Jangan hanya upload ZIP.
-5. Commit changes. Pengaturan GitHub Pages tetap main / root.
-6. Buka URL GitHub Pages. Tekan Ctrl+F5. Bila masih muncul V2, hapus data situs GitHub Pages di pengaturan browser, lalu buka ulang (ini menghapus cache dashboard lokal, bukan Spreadsheet).
-7. Klik Koneksi, tempel URL Apps Script /exec, lalu Simpan & Hubungkan. Tidak perlu mencari config.js. Pengaturan ini disimpan per browser/perangkat; isi kembali di HP atau Incognito.
-
-Alternatif: isi API_URL di config.js sebelum upload agar perangkat menggunakan endpoint default yang sama. Jangan mengunggah kredensial.
-
-## Pemasangan aplikasi
-
-Klik Download / Pasang Aplikasi. Jika browser mendukung prompt instalasi, prompt akan tampil. Jika belum tersedia, tombol menampilkan petunjuk Android, iPhone, dan komputer. Dashboard harus dibuka via HTTPS GitHub Pages, bukan file lokal. Bukan unduhan APK/EXE. Opsi instalasi bergantung pada browser/perangkat; prompt tidak selalu tampil dan dapat tidak tersedia di Incognito.
-
-## Grafik
-
-- Batang atau garis lewat pilihan Bentuk grafik.
-- Hover, sentuh, atau fokus dengan keyboard untuk tooltip angka.
-- Klik legenda untuk menampilkan/menyembunyikan seri.
-- Klik batang/titik periode invoice untuk memfilter order.
-- Klik outlet di grafik ranking untuk mengisi pencarian outlet.
-- Unduh grafik invoice sebagai SVG.
-- Animasi KPI dan grafik menghormati pengaturan reduced motion.
-
-## Data & batasan
-
-Order/ranking/KPI menggunakan tanggal order, bukan nama sheet PO. Kolom Periode Sumber tersedia untuk penelusuran. Produksi, stok, harga, dan pemakaian mengikuti nama bulan sumber (tahun tidak tersedia di beberapa tabel); filter outlet tidak diterapkan pada tabel tersebut. Stok tiap bahan tidak dijumlahkan menjadi satu angka. Fisik kosong tidak dianggap selisih negatif. Angka produksi ditampilkan sesuai sumber, tanpa otomatis mengubah angka ambigu seperti 13.925.
-
-Cache data terakhir hanya ditampilkan jika pernah sukses terhubung ke endpoint yang sama. Tampilan offline bukan data live. Koneksi gagal tidak menutup dashboard. Pembaruan otomatis setiap 5 menit saat tab aktif dan online; tombol Muat Ulang meminta data tanpa cache server. Ekstensi, sesi akun, DNS, dan pembatasan jaringan browser tetap dapat memblokir Apps Script; aplikasi tidak melewati pembatasan tersebut.
-
-API publik Anyone memungkinkan pembacaan data oleh siapa pun dengan URL. GitHub Pages/PWA ini tidak menyediakan autentikasi internal. Jangan gunakan untuk data rahasia tanpa lapisan autentikasi tambahan. Cache data tersimpan di perangkat; gunakan perangkat tepercaya.
-
-## Pengujian lokal
-
-`node tests/core.test.cjs` dan `node tests/backend.test.cjs`. Jalankan dari root folder. Membuka file HTML lokal tidak cukup untuk menguji instalasi PWA/API; perlu HTTPS dan deployment Google nyata.
+Live Google/PWA perlu diverifikasi setelah deployment. URL bawaan hanya diubah oleh pengelola di config.js jika deployment berganti.
