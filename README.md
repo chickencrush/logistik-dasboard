@@ -1,37 +1,37 @@
-# CC Logistik V4.2 — Koneksi Otomatis
+# Chicken Crush Logistik — PWA
 
-## Perubahan
-- URL Apps Script milik pengguna sudah ditetapkan dalam config.js.
-- Dashboard memuat data otomatis pada perangkat baru tanpa mengetik /exec.
-- Konfigurasi bawaan diprioritaskan; URL lama tersimpan per browser diabaikan.
-- Form input URL dihapus. Tombol Status Koneksi menampilkan status, bukan pengaturan.
-- Mascot tersemat dan perbaikan sidebar V4.1 tetap dipertahankan.
-- Tidak ada sistem login/autentikasi baru atau akses yang melewati izin Google.
+Dashboard Logistik Enterprise Chicken Crush yang dapat dipasang sebagai aplikasi di PC, Android, dan iOS.
 
-## Cara update
-1. Ekstrak paket dan buka folder logistik_dashboard_v4_2.
-2. Upload SEMUA ISI folder ke root repository GitHub lama, termasuk config.js, assets, dan sw.js. Jangan hanya upload ZIP.
-3. PENTING: ganti config.js lama dengan file config.js paket ini. Jangan mempertahankan konfigurasi placeholder dari versi lama.
-4. Commit changes dan tunggu deployment GitHub Pages selesai.
-5. Tutup dashboard lama, buka URL Pages kembali, lalu Ctrl+F5. HP: tutup tab/PWA lalu buka ulang.
-6. Apps Script V3 dan Spreadsheet tidak perlu diubah jika deployment yang diberikan masih aktif dan mengizinkan API publik.
-7. Bila versi lama tetap tampil, hapus data situs KHUSUS dashboard GitHub Pages. Ini menghapus cache lokal, bukan data Spreadsheet. Koneksi tidak perlu diinput ulang karena sudah bawaan.
+## Struktur
+- `index.html` — aplikasi utama
+- `manifest.json` — konfigurasi PWA/install
+- `sw.js` — service worker/cache offline
+- `icon-192.png` — ikon PWA
+- `icon-512.png` — ikon PWA
+- `apple-touch-icon.png` — ikon iOS
 
-## Memasang aplikasi
-Gunakan Download / Pasang Aplikasi pada HTTPS GitHub Pages. Ini PWA, bukan APK/EXE. Android menggunakan menu instalasi browser; iPhone melalui Share > Add to Home Screen. Ketersediaan instalasi bergantung pada browser.
+## Deploy ke GitHub Pages
+1. Buat repository baru di GitHub, misalnya `chicken-crush-logistik`.
+2. Upload semua file di folder ini ke root repository.
+3. Buka **Settings → Pages**.
+4. Pada **Build and deployment**, pilih **Deploy from a branch**.
+5. Pilih branch `main` dan folder `/ (root)`.
+6. Save.
+7. Tunggu GitHub Pages selesai deploy.
+8. Buka URL Pages yang diberikan GitHub.
 
-## Batasan koneksi
-Internet tetap diperlukan untuk pembaruan. API harus memberi respons JSONP dari backend GitHub V3 atau V2 dan deployment publik yang valid. Koneksi otomatis tidak memperbaiki DNS, ekstensi, sesi multi-akun Google, atau kebijakan akses Google. Jika hanya Incognito yang berhasil, gunakan profil Chrome terpisah dan periksa ekstensi/sesi akun.
+## Install
+### Android / Chrome
+Buka URL → menu browser → Install app / Add to Home screen.
 
-## Keamanan
-Endpoint tersimpan dalam kode publik GitHub. API ini tidak menyediakan autentikasi internal. Orang yang mengetahui URL dapat membaca data yang disediakan endpoint; jangan gunakan untuk data rahasia tanpa autentikasi tambahan. Data terakhir disimpan di perangkat untuk tampilan offline, bukan data live.
+### PC / Edge atau Chrome
+Buka URL → ikon Install di address bar atau tombol install di aplikasi.
 
-## Tes
-node tests/core.test.cjs
-node tests/backend.test.cjs
-node tests/charts.test.cjs
-node tests/ui.test.cjs
-node tests/brand-sidebar.test.cjs
-node tests/autoconnect.test.cjs
+### iPhone/iPad
+Buka URL dengan Safari → Share → Add to Home Screen.
 
-Live Google/PWA perlu diverifikasi setelah deployment. URL bawaan hanya diubah oleh pengelola di config.js jika deployment berganti.
+## Catatan
+PWA membutuhkan HTTPS. GitHub Pages menyediakan HTTPS secara otomatis.
+
+## UI Upgrade
+Versi ini mempertahankan seluruh data dan fungsi dashboard, dengan peningkatan visual modern/profesional, responsive mobile, hover states, header status, dan styling kartu/tabel.
