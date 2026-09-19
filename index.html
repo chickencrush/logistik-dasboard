@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Logistik Enterprise - Chicken Crush</title>
+    <title>Chicken Crush Logistik • Dashboard Realtime</title>
 
     <meta name="theme-color" content="#0f172a">
     <meta name="mobile-web-app-capable" content="yes">
@@ -94,6 +94,17 @@ main{padding:1rem!important}
 }
 </style>
 
+
+<style id="realtime-ui">
+#refreshBtn:disabled{opacity:.55;cursor:not-allowed}
+#apiStatus{white-space:nowrap}
+@keyframes pulse-soft{0%,100%{opacity:1}50%{opacity:.55}}
+#apiStatus.bg-emerald-100{animation:pulse-soft 2.5s ease-in-out infinite}
+@media(max-width:640px){
+  #apiStatus{display:none}
+  #lastUpdated{font-size:10px}
+}
+</style>
 </head>
 <body class="bg-slate-50 dark:bg-navy-950 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen flex transition-colors duration-200">
 
@@ -162,6 +173,10 @@ main{padding:1rem!important}
             </div>
             <div class="flex items-center gap-2">
                 <span id="offlineBadge" class="hidden text-[10px] font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-700">OFFLINE</span>
+                <span id="apiStatus" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">API: CHECKING</span>
+                <button id="refreshBtn" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition" title="Refresh data">
+                    <i class="ph-bold ph-arrows-clockwise text-lg" id="refreshIcon"></i>
+                </button>
                 <button id="installBtn" class="hidden p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition" title="Install aplikasi">
                     <i class="ph-bold ph-download-simple text-lg"></i>
                 </button>
@@ -180,6 +195,7 @@ main{padding:1rem!important}
                         <p class="text-[11px] font-bold uppercase tracking-[.18em] text-orange-500">CHICKEN CRUSH • LOGISTICS</p>
                         <h3 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">Dashboard Operasional</h3>
                         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Pantau distribusi, persediaan, outlet, pemakaian, dan perubahan harga dalam satu tampilan.</p>
+                        <p class="text-[11px] text-slate-400 mt-2">Data terakhir diperbarui: <span id="lastUpdated">-</span></p>
                     </div>
                     <div class="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                         <i class="ph-bold ph-shield-check text-emerald-500"></i> Enterprise Dashboard
@@ -191,7 +207,7 @@ main{padding:1rem!important}
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Tonase Terkirim</p>
-                                <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-1">67.262 <span class="text-sm font-normal text-slate-500">Kg</span></h4>
+                                <h4 id="kpiTonase" class="text-2xl font-black text-slate-900 dark:text-white mt-1">- <span class="text-sm font-normal text-slate-500">Kg</span></h4>
                                 <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-2 font-semibold">Mei – Ags 2026</p>
                             </div>
                             <div class="p-3 bg-orange-50 text-orange-600 rounded-xl"><i class="ph-bold ph-truck text-2xl"></i></div>
@@ -201,7 +217,7 @@ main{padding:1rem!important}
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estimasi Waktu Kirim</p>
-                                <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-1">2 – 12 <span class="text-sm font-normal text-slate-500">Hari</span></h4>
+                                <h4 id="kpiWaktu" class="text-2xl font-black text-slate-900 dark:text-white mt-1">- <span class="text-sm font-normal text-slate-500">Hari</span></h4>
                                 <p class="text-xs text-slate-500 mt-2">Disesuaikan Wilayah Mitra</p>
                             </div>
                             <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i class="ph-bold ph-clock-clockwise text-2xl"></i></div>
@@ -211,7 +227,7 @@ main{padding:1rem!important}
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Omset Logistik</p>
-                                <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-1">Rp 1,05 M</h4>
+                                <h4 id="kpiInvoice" class="text-2xl font-black text-slate-900 dark:text-white mt-1">-</h4>
                                 <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-2 font-semibold">100% Lunas</p>
                             </div>
                             <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><i class="ph-bold ph-receipt text-2xl"></i></div>
@@ -221,7 +237,7 @@ main{padding:1rem!important}
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Keluar Tepung Jadi</p>
-                                <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-1">5.142 <span class="text-sm font-normal text-slate-500">Kg</span></h4>
+                                <h4 id="kpiTepung" class="text-2xl font-black text-slate-900 dark:text-white mt-1">- <span class="text-sm font-normal text-slate-500">Kg</span></h4>
                                 <p class="text-xs text-slate-500 mt-2">Total Apr – Ags 2026</p>
                             </div>
                             <div class="p-3 bg-purple-50 text-purple-600 rounded-xl"><i class="ph-bold ph-package text-2xl"></i></div>
@@ -231,37 +247,7 @@ main{padding:1rem!important}
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-white dark:bg-navy-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
                         <h4 class="font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3"><i class="ph-bold ph-arrow-circle-up text-rose-500"></i> Ringkasan Kenaikan Harga</h4>
-                        <div class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">
-                            <div class="p-3.5 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200/60 dark:border-slate-800">
-                                <div class="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200">
-                                    <span>Triwulan 1 (Jan - Mar)</span><span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px]">2 Barang Naik</span>
-                                </div>
-                                <ul class="mt-2 text-xs text-slate-600 dark:text-slate-400 list-disc list-inside">
-                                    <li><strong class="text-slate-800 dark:text-slate-200">Minyak Padat 15 kg</strong> (Feb: Rp 375k)</li>
-                                    <li><strong class="text-slate-800 dark:text-slate-200">Teh Tjatoet Hijau 80 gr</strong> (Mar: Rp 336k)</li>
-                                </ul>
-                            </div>
-                            <div class="p-3.5 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200/60 dark:border-slate-800">
-                                <div class="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200">
-                                    <span>Triwulan 2 (Apr - Jun)</span><span class="px-2 py-0.5 bg-rose-100 text-rose-700 rounded text-[10px]">4 Barang Naik</span>
-                                </div>
-                                <ul class="mt-2 text-xs text-slate-600 dark:text-slate-400 list-disc list-inside">
-                                    <li><strong class="text-slate-800 dark:text-slate-200">Saus Sambal Mc Lewis 5.5 kg</strong> (Mei: Rp 258k)</li>
-                                    <li><strong class="text-slate-800 dark:text-slate-200">Soft Serve Anchor</strong> (Mei: Rp 708k)</li>
-                                    <li><strong class="text-slate-800 dark:text-slate-200">Knor Lime Powder 400 gr</strong> (Mei: Rp 860k)</li>
-                                </ul>
-                            </div>
-                            <div class="p-3.5 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200/60 dark:border-slate-800">
-                                <div class="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200">
-                                    <span>Triwulan 3 (Jul - Sep)</span><span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px]">3 Barang Naik</span>
-                                </div>
-                                <ul class="mt-2 text-xs text-slate-600 dark:text-slate-400 list-disc list-inside">
-                                    <li><strong class="text-slate-800 dark:text-slate-200">Roti Bernardi Wijen</strong> (Jul: Rp 237k)</li>
-                                    <li><strong class="text-slate-800 dark:text-slate-200">Otak-otak Ikan Indomima 500 gr</strong> (Jul: Rp 360k)</li>
-                                    <li><strong class="text-slate-800 dark:text-slate-200">Omella 490 gr</strong> (Sep: Rp 679k)</li>
-                                </ul>
-                            </div>
-                        </div>
+                        <div id="priceSummary" class="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1"></div>
                     </div>
                     <div class="lg:col-span-2 bg-white dark:bg-navy-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
                         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -302,35 +288,7 @@ main{padding:1rem!important}
                         <p class="text-xs text-slate-500">Sleman & Yogyakarta Internal Outlets</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-2"><h4 class="font-bold text-slate-900 dark:text-white">CC UII (Jalan Kaliurang)</h4><span class="px-2 py-0.5 text-[10px] bg-amber-100 text-amber-800 font-bold rounded">Aktif</span></div>
-                            <p class="text-xs text-slate-500">Tepung Putih Olahan</p>
-                        </div>
-                        <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-right">
-                            <span class="text-2xl font-black text-amber-600 dark:text-amber-400">74 Bag</span><p class="text-[10px] text-slate-400">Setara 370 Kg</p>
-                        </div>
-                    </div>
-                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-2"><h4 class="font-bold text-slate-900 dark:text-white">CV. LIMA DUA</h4><span class="px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 font-bold rounded">Pusat Hub</span></div>
-                            <p class="text-xs text-slate-500">Distribusi & Repacking</p>
-                        </div>
-                        <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-right">
-                            <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400">Siap</span><p class="text-[10px] text-slate-400">Buffer Stock</p>
-                        </div>
-                    </div>
-                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-2"><h4 class="font-bold text-slate-900 dark:text-white">CC GODEAN</h4><span class="px-2 py-0.5 text-[10px] bg-blue-100 text-blue-800 font-bold rounded">Standby</span></div>
-                            <p class="text-xs text-slate-500">Ops Wilayah Barat</p>
-                        </div>
-                        <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-right">
-                            <span class="text-2xl font-black text-blue-600 dark:text-blue-400">Standby</span><p class="text-[10px] text-slate-400">Pasokan Aman</p>
-                        </div>
-                    </div>
-                </div>
+                <div id="outletGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
             </div>
 
             <!-- PANEL 4: PERSEDIAAN -->
@@ -389,51 +347,412 @@ main{padding:1rem!important}
     </div>
 
     <script>
-        const dataWilayah = [
-            {"name": "CC Medan", "orders": 3, "tonase": 25850.0, "invoice": 226100000.0, "estimasi": "7 - 12 Hari"},
-            {"name": "CC Padang", "orders": 4, "tonase": 20953.0, "invoice": 391545000.0, "estimasi": "7 - 12 Hari"},
-            {"name": "CC Kalimantan", "orders": 3, "tonase": 6800.0, "invoice": 136198000.0, "estimasi": "5 - 8 Hari"},
-            {"name": "CC Banten", "orders": 3, "tonase": 3044.0, "invoice": 78177000.0, "estimasi": "3 - 5 Hari"},
-            {"name": "CC Cilacap", "orders": 3, "tonase": 2577.0, "invoice": 54326000.0, "estimasi": "2 - 3 Hari"},
-            {"name": "CC Pangkal Pinang", "orders": 1, "tonase": 1400.0, "invoice": 7678000.0, "estimasi": "6 - 9 Hari"},
-            {"name": "CC Mataram", "orders": 1, "tonase": 1350.0, "invoice": 24956000.0, "estimasi": "5 - 7 Hari"},
-            {"name": "CC Serpong", "orders": 4, "tonase": 1007.0, "invoice": 29328000.0, "estimasi": "2 - 4 Hari"},
-            {"name": "CC Kudus", "orders": 3, "tonase": 955.0, "invoice": 29828000.0, "estimasi": "2 - 3 Hari"},
-            {"name": "CC Semarang", "orders": 3, "tonase": 840.0, "invoice": 22716000.0, "estimasi": "1 - 2 Hari"},
-            {"name": "CC Madiun", "orders": 2, "tonase": 823.0, "invoice": 11838000.0, "estimasi": "2 - 3 Hari"},
-            {"name": "CC Solear", "orders": 2, "tonase": 744.0, "invoice": 12608000.0, "estimasi": "3 - 5 Hari"},
-            {"name": "CC Tobelo", "orders": 3, "tonase": 578.0, "invoice": 15997500.0, "estimasi": "10 - 14 Hari"},
-            {"name": "CC Cepu", "orders": 3, "tonase": 341.0, "invoice": 8627500.0, "estimasi": "2 - 3 Hari"}
-        ];
+        /* =========================
+           DATA API / STATE
+           ========================= */
+        const API_URL = localStorage.getItem('cc_logistik_api_url') || 'PASTE_APPS_SCRIPT_EXEC_URL_HERE';
 
-        const dataPersediaan = [
-            {"bulan": "April", "tepung_jadi": 1110.0, "tepung_merah": 158.0, "total_out": 1268.0},
-            {"bulan": "Mei", "tepung_jadi": 1114.0, "tepung_merah": 150.0, "total_out": 1264.0},
-            {"bulan": "Juni", "tepung_jadi": 526.0, "tepung_merah": 38.0, "total_out": 564.0},
-            {"bulan": "Juli", "tepung_jadi": 1234.0, "tepung_merah": 172.0, "total_out": 1406.0},
-            {"bulan": "Agustus", "tepung_jadi": 1158.0, "tepung_merah": 168.0, "total_out": 1326.0}
-        ];
+        const state = {
+            data: null,
+            chart: null,
+            loading: false,
+            lastLoaded: null
+        };
 
-        const dataPemakaian = [
-            {"no": 1, "name": "Bumbu Bakar (Jirigen)", "unit": "Jirigen", "apr": 168.0, "mei": 28.0, "jun": 32.0, "jul": 30.0, "ags": 49.0, "avg": "61.4"},
-            {"no": 2, "name": "Sambal Geprek ( Box)", "unit": "Box", "apr": 117.0, "mei": 123.0, "jun": 126.0, "jul": 91.0, "ags": 115.0, "avg": "114.4"},
-            {"no": 3, "name": "Box TA L ( Rim)", "unit": "Rim", "apr": 225.0, "mei": 76.0, "jun": 79.0, "jul": 111.0, "ags": 72.0, "avg": "112.6"},
-            {"no": 4, "name": "Cheese Powder ( Pack)", "unit": "Pack", "apr": 222.0, "mei": 206.0, "jun": 156.0, "jul": 60.0, "ags": 120.0, "avg": "152.8"},
-            {"no": 5, "name": "Saus Branding Sachet ( Box )", "unit": "Box", "apr": 291.0, "mei": 100.0, "jun": 175.0, "jul": 149.0, "ags": 142.0, "avg": "171.4"},
-            {"no": 6, "name": "Kertas Nasi  ( Rim)", "unit": "Rim", "apr": 1306.0, "mei": 167.0, "jun": 340.0, "jul": 413.0, "ags": 320.0, "avg": "509.2"},
-            {"no": 7, "name": "Cup 22Oz + Lid ( Slop )", "unit": "Slop", "apr": 580.0, "mei": 132.0, "jun": 296.0, "jul": 380.0, "ags": 176.0, "avg": "312.8"},
-            {"no": 8, "name": "P.TA Tanggung 34 Polly ( Paket )", "unit": "Paket", "apr": 1282.0, "mei": 444.0, "jun": 691.0, "jul": 620.0, "ags": 360.0, "avg": "679.4"}
-        ];
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
-        const dataHarga = [
-            {"no": 1, "name": "Minyak Padat 15 kg", "mei": {"p": "375.000", "st": "Tetap"}, "jun": {"p": "375.000", "st": "Tetap"}, "jul": {"p": "375.000", "st": "Tetap"}, "ags": {"p": "375.000", "st": "Tetap"}, "sep": {"p": "375.000", "st": "Tetap"}},
-            {"no": 3, "name": "Omella 490 gr", "mei": {"p": "646.962", "st": "Tetap"}, "jun": {"p": "646.962", "st": "Tetap"}, "jul": {"p": "646.962", "st": "Tetap"}, "ags": {"p": "646.962", "st": "Tetap"}, "sep": {"p": "679.311", "st": "Naik"}},
-            {"no": 4, "name": "Saus Sambal Mc Lewis 5.5 kg", "mei": {"p": "258.624", "st": "Naik"}, "jun": {"p": "258.624", "st": "Tetap"}, "jul": {"p": "258.624", "st": "Tetap"}, "ags": {"p": "258.624", "st": "Tetap"}, "sep": {"p": "258.624", "st": "Tetap"}},
-            {"no": 5, "name": "Soft Serve Anchor", "mei": {"p": "708.750", "st": "Naik"}, "jun": {"p": "708.750", "st": "Tetap"}, "jul": {"p": "661.500", "st": "Tetap"}, "ags": {"p": "675.000", "st": "Naik"}, "sep": {"p": "675.000", "st": "Tetap"}},
-            {"no": 7, "name": "Roti Bernardi Wijen", "mei": {"p": "223.200", "st": "Tetap"}, "jun": {"p": "223.200", "st": "Tetap"}, "jul": {"p": "237.600", "st": "Naik"}, "ags": {"p": "237.600", "st": "Tetap"}, "sep": {"p": "237.600", "st": "Tetap"}},
-            {"no": 8, "name": "Otak-otak Ikan Indomima", "mei": {"p": "335.000", "st": "Tetap"}, "jun": {"p": "335.000", "st": "Tetap"}, "jul": {"p": "360.000", "st": "Naik"}, "ags": {"p": "360.000", "st": "Tetap"}, "sep": {"p": "360.000", "st": "Tetap"}},
-            {"no": 9, "name": "Knor Lime Powder 400 gr", "mei": {"p": "860.400", "st": "Naik"}, "jun": {"p": "860.400", "st": "Tetap"}, "jul": {"p": "860.400", "st": "Tetap"}, "ags": {"p": "860.400", "st": "Tetap"}, "sep": {"p": "860.400", "st": "Tetap"}}
-        ];
+        function num(value) {
+            const n = Number(value);
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        function fmtNum(value, digits = 0) {
+            return num(value).toLocaleString('id-ID', {
+                minimumFractionDigits: digits,
+                maximumFractionDigits: digits
+            });
+        }
+
+        function fmtRupiah(value) {
+            return 'Rp ' + fmtNum(value);
+        }
+
+        function fmtCompactRupiah(value) {
+            const n = num(value);
+            if (Math.abs(n) >= 1e12) return 'Rp ' + (n / 1e12).toFixed(2).replace('.', ',') + ' T';
+            if (Math.abs(n) >= 1e9) return 'Rp ' + (n / 1e9).toFixed(2).replace('.', ',') + ' M';
+            if (Math.abs(n) >= 1e6) return 'Rp ' + (n / 1e6).toFixed(2).replace('.', ',') + ' Jt';
+            if (Math.abs(n) >= 1e3) return 'Rp ' + (n / 1e3).toFixed(1).replace('.', ',') + ' Rb';
+            return fmtRupiah(n);
+        }
+
+        function setApiStatus(ok, text) {
+            const el = document.getElementById('apiStatus');
+            if (!el) return;
+            el.textContent = text || (ok ? 'API: ONLINE' : 'API: ERROR');
+            el.className = 'text-[10px] font-bold px-2 py-1 rounded-lg ' +
+                (ok
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                    : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300');
+        }
+
+        function setLoading(isLoading) {
+            state.loading = isLoading;
+            const icon = document.getElementById('refreshIcon');
+            const btn = document.getElementById('refreshBtn');
+            if (icon) icon.classList.toggle('animate-spin', isLoading);
+            if (btn) btn.disabled = isLoading;
+        }
+
+        async function loadDashboard(forceRefresh = false) {
+            if (API_URL === 'PASTE_APPS_SCRIPT_EXEC_URL_HERE') {
+                setApiStatus(false, 'API: SET URL');
+                document.getElementById('lastUpdated').textContent = 'URL API belum diatur';
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const url = new URL(API_URL);
+                if (forceRefresh) url.searchParams.set('refresh', '1');
+                else url.searchParams.delete('refresh');
+
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+
+                const json = await response.json();
+                if (json.status !== 'success') {
+                    throw new Error(json.message || 'API mengembalikan error');
+                }
+
+                state.data = json;
+                state.lastLoaded = new Date();
+
+                renderDashboard(json);
+                setApiStatus(true, 'API: ONLINE');
+                document.getElementById('lastUpdated').textContent =
+                    state.lastLoaded.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+            } catch (error) {
+                console.error('Gagal mengambil data dashboard:', error);
+                setApiStatus(false, 'API: ERROR');
+                document.getElementById('lastUpdated').textContent = 'Gagal memuat data';
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function renderDashboard(data) {
+            renderOverview(data);
+            renderTableWilayah(data.wilayah || []);
+            renderTablePersediaan(data.persediaan || []);
+            renderTablePemakaian(data.pemakaian || []);
+            renderTableHarga(data.harga || [], document.getElementById('searchHarga')?.value || '');
+            renderOutlet(data.outlet || []);
+            renderPriceSummary(data.harga || []);
+            renderTonaseChart(data.poBulanan || []);
+        }
+
+        function renderOverview(data) {
+            const overview = data.overview || {};
+            const wilayah = data.wilayah || [];
+
+            document.getElementById('kpiTonase').innerHTML =
+                `${fmtNum(overview.totalTonase)} <span class="text-sm font-normal text-slate-500">Kg</span>`;
+
+            const validDays = wilayah.map(x => num(x.avgHariKirim)).filter(x => x > 0);
+            const minDays = validDays.length ? Math.min(...validDays) : 0;
+            const maxDays = validDays.length ? Math.max(...validDays) : 0;
+            document.getElementById('kpiWaktu').innerHTML =
+                `${minDays ? fmtNum(minDays, 1) : '-'} – ${maxDays ? fmtNum(maxDays, 1) : '-'} <span class="text-sm font-normal text-slate-500">Hari</span>`;
+
+            document.getElementById('kpiInvoice').textContent =
+                fmtCompactRupiah(overview.totalInvoice);
+
+            document.getElementById('kpiTepung').innerHTML =
+                `${fmtNum(overview.persediaanTerakhir?.total_out || 0)} <span class="text-sm font-normal text-slate-500">Kg</span>`;
+
+            const latest = overview.persediaanTerakhir;
+            const subtitle = document.querySelector('#kpiTepung')?.parentElement?.querySelector('p.text-xs.text-slate-500');
+            if (subtitle && latest?.bulan) subtitle.textContent = 'Total OUT ' + latest.bulan;
+        }
+
+        function renderTableWilayah(list) {
+            const tbody = document.getElementById('tableWilayah');
+            tbody.innerHTML = '';
+            if (!list.length) {
+                tbody.innerHTML = emptyRow(6, 'Belum ada data wilayah');
+                return;
+            }
+
+            list.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-950/50";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center font-bold">${idx + 1}</td>
+                    <td class="py-3 px-4 font-bold text-slate-900 dark:text-white">${escapeHtml(item.name)}</td>
+                    <td class="py-3 px-4 text-center font-medium">${fmtNum(item.orders)} PO</td>
+                    <td class="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">${fmtNum(item.tonase)} Kg</td>
+                    <td class="py-3 px-4 text-right font-semibold">${fmtRupiah(item.invoice)}</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-800 rounded-md">${escapeHtml(item.estimasi || '-')}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderTablePersediaan(list) {
+            const tbody = document.getElementById('tablePersediaan');
+            tbody.innerHTML = '';
+            if (!list.length) {
+                tbody.innerHTML = emptyRow(4, 'Belum ada data persediaan');
+                return;
+            }
+
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-950/50";
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-medium">${escapeHtml(item.bulan || '-')}</td>
+                    <td class="py-3.5 px-4 text-right">${fmtNum(item.tepung_jadi)}</td>
+                    <td class="py-3.5 px-4 text-right">${fmtNum(item.tepung_merah)}</td>
+                    <td class="py-3.5 px-4 text-right font-bold text-blue-600 dark:text-blue-400">${fmtNum(item.total_out)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderTablePemakaian(list) {
+            const tbody = document.getElementById('tablePemakaian');
+            tbody.innerHTML = '';
+            if (!list.length) {
+                tbody.innerHTML = emptyRow(9, 'Belum ada data pemakaian');
+                return;
+            }
+
+            list.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-950/50";
+                tr.innerHTML = `
+                    <td class="py-3 px-4">${fmtNum(item.no || idx + 1)}</td>
+                    <td class="py-3 px-4 font-bold">${escapeHtml(item.name)}</td>
+                    <td class="py-3 px-4 text-center text-xs">${escapeHtml(item.unit || '-')}</td>
+                    <td class="py-3 px-4 text-right">${fmtNum(item.apr)}</td>
+                    <td class="py-3 px-4 text-right">${fmtNum(item.mei)}</td>
+                    <td class="py-3 px-4 text-right">${fmtNum(item.jun)}</td>
+                    <td class="py-3 px-4 text-right">${fmtNum(item.jul)}</td>
+                    <td class="py-3 px-4 text-right">${fmtNum(item.ags)}</td>
+                    <td class="py-3 px-4 text-right font-bold text-orange-600">${fmtNum(item.avg, 1)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderHargaBadge(m) {
+            if (!m) return '<div class="text-center text-slate-400">-</div>';
+            const price = num(m.p);
+            const status = String(m.st || '-');
+            if (status.toUpperCase() === 'NAIK') {
+                return `<div class="text-center"><span class="font-bold text-rose-600">${fmtRupiah(price)}</span> <span class="px-1 text-[9px] bg-rose-100 text-rose-700 rounded">NAIK</span></div>`;
+            }
+            if (status.toUpperCase() === 'TURUN') {
+                return `<div class="text-center"><span class="font-bold text-emerald-600">${fmtRupiah(price)}</span> <span class="px-1 text-[9px] bg-emerald-100 text-emerald-700 rounded">TURUN</span></div>`;
+            }
+            return `<div class="text-center">${fmtRupiah(price)} <span class="text-slate-400">(-)</span></div>`;
+        }
+
+        function renderTableHarga(list, filter = '') {
+            const tbody = document.getElementById('tableHarga');
+            tbody.innerHTML = '';
+            const q = filter.toLowerCase().trim();
+            const filtered = list.filter(i => String(i.name || '').toLowerCase().includes(q));
+
+            if (!filtered.length) {
+                tbody.innerHTML = emptyRow(7, q ? 'Barang tidak ditemukan' : 'Belum ada data harga');
+                return;
+            }
+
+            filtered.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-950/50";
+                tr.innerHTML = `
+                    <td class="py-3 px-3">${escapeHtml(item.no || idx + 1)}</td>
+                    <td class="py-3 px-3 font-bold">${escapeHtml(item.name)}</td>
+                    <td class="py-3 px-3">${renderHargaBadge(item.mei)}</td>
+                    <td class="py-3 px-3">${renderHargaBadge(item.jun)}</td>
+                    <td class="py-3 px-3">${renderHargaBadge(item.jul)}</td>
+                    <td class="py-3 px-3">${renderHargaBadge(item.ags)}</td>
+                    <td class="py-3 px-3">${renderHargaBadge(item.sep)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderOutlet(list) {
+            const grid = document.getElementById('outletGrid');
+            grid.innerHTML = '';
+
+            if (!list.length) {
+                grid.innerHTML = `<div class="md:col-span-3 p-8 text-center text-sm text-slate-400">Belum ada data outlet.</div>`;
+                return;
+            }
+
+            list.forEach((outlet, idx) => {
+                const blocks = outlet.stock || [];
+                const summary = getOutletSummary(blocks);
+                const accent = idx === 0 ? 'emerald' : idx === 1 ? 'amber' : 'blue';
+
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center gap-2 mb-2">
+                                <h4 class="font-bold text-slate-900 dark:text-white">${escapeHtml(outlet.name)}</h4>
+                                <span class="px-2 py-0.5 text-[10px] bg-${accent}-100 text-${accent}-800 font-bold rounded">DATA AKTIF</span>
+                            </div>
+                            <p class="text-xs text-slate-500">${fmtNum(summary.totalItems)} item stok terdeteksi</p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-right">
+                            <span class="text-2xl font-black text-${accent}-600 dark:text-${accent}-400">${fmtNum(summary.totalQty)}</span>
+                            <p class="text-[10px] text-slate-400">Total Qty terdeteksi</p>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function getOutletSummary(blocks) {
+            let totalQty = 0;
+            let totalItems = 0;
+
+            function walk(value) {
+                if (Array.isArray(value)) {
+                    value.forEach(walk);
+                    return;
+                }
+                if (!value || typeof value !== 'object') return;
+
+                // Menjumlahkan field qty/stock jika tersedia tanpa bergantung struktur blok.
+                ['qty', 'quantity', 'stock', 'fisik', 'saldo'].forEach(key => {
+                    if (typeof value[key] === 'number') totalQty += value[key];
+                });
+
+                if (value.name || value.item || value.nama) totalItems += 1;
+                Object.keys(value).forEach(k => {
+                    if (!['qty','quantity','stock','fisik','saldo','name','item','nama'].includes(k)) {
+                        const child = value[k];
+                        if (child && typeof child === 'object') walk(child);
+                    }
+                });
+            }
+
+            walk(blocks);
+            return { totalQty, totalItems };
+        }
+
+        function renderPriceSummary(list) {
+            const box = document.getElementById('priceSummary');
+            box.innerHTML = '';
+
+            const increases = [];
+            list.forEach(item => {
+                ['mei','jun','jul','ags','sep'].forEach(month => {
+                    const m = item[month];
+                    if (m && String(m.st).toUpperCase() === 'NAIK') {
+                        increases.push({ name: item.name, month, price: m.p });
+                    }
+                });
+            });
+
+            const groups = [
+                { title: 'Mei 2026', key: 'mei', cls: 'amber' },
+                { title: 'Juni 2026', key: 'jun', cls: 'rose' },
+                { title: 'Juli 2026', key: 'jul', cls: 'purple' },
+                { title: 'Agustus 2026', key: 'ags', cls: 'blue' },
+                { title: 'September 2026', key: 'sep', cls: 'orange' }
+            ];
+
+            let rendered = false;
+            groups.forEach(group => {
+                const items = increases.filter(x => x.month === group.key);
+                if (!items.length) return;
+                rendered = true;
+
+                const listHtml = items.slice(0, 5).map(x =>
+                    `<li><strong class="text-slate-800 dark:text-slate-200">${escapeHtml(x.name)}</strong> — ${fmtRupiah(x.price)}</li>`
+                ).join('');
+
+                box.insertAdjacentHTML('beforeend', `
+                    <div class="p-3.5 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200/60 dark:border-slate-800">
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200">
+                            <span>${group.title}</span>
+                            <span class="px-2 py-0.5 bg-rose-100 text-rose-700 rounded text-[10px]">${items.length} Barang Naik</span>
+                        </div>
+                        <ul class="mt-2 text-xs text-slate-600 dark:text-slate-400 list-disc list-inside">${listHtml}</ul>
+                    </div>
+                `);
+            });
+
+            if (!rendered) {
+                box.innerHTML = `<div class="p-4 rounded-xl bg-slate-50 dark:bg-navy-950 text-sm text-slate-500">Tidak ada kenaikan harga pada data yang diterima.</div>`;
+            }
+        }
+
+        function renderTonaseChart(monthly) {
+            const canvas = document.getElementById('tonaseChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            const labels = monthly.map(x => x.bulan);
+            const values = monthly.map(x => num(x.tonase));
+
+            if (state.chart) state.chart.destroy();
+
+            state.chart = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Total Tonase (Kg)',
+                        data: values,
+                        backgroundColor: '#ea580c',
+                        borderRadius: 8,
+                        maxBarThickness: 48
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ' ' + fmtNum(ctx.raw) + ' Kg'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: value => fmtNum(value) }
+                        }
+                    }
+                }
+            });
+        }
+
+        function emptyRow(colspan, message) {
+            return `<tr><td colspan="${colspan}" class="py-10 text-center text-slate-400">${escapeHtml(message)}</td></tr>`;
+        }
 
         // SIDEBAR LOGIC
         const sidebar = document.getElementById('sidebar');
@@ -494,103 +813,22 @@ main{padding:1rem!important}
             document.getElementById('headerTitle').innerText = titles[tabId];
         }
 
-        // RENDER TABLES
-        function renderTableWilayah() {
-            const tbody = document.getElementById('tableWilayah');
-            dataWilayah.forEach((item, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-950/50";
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-center font-bold">${idx + 1}</td>
-                    <td class="py-3 px-4 font-bold text-slate-900 dark:text-white">${item.name}</td>
-                    <td class="py-3 px-4 text-center font-medium">${item.orders} PO</td>
-                    <td class="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">${item.tonase.toLocaleString('id-ID')} Kg</td>
-                    <td class="py-3 px-4 text-right font-semibold">Rp ${item.invoice.toLocaleString('id-ID')}</td>
-                    <td class="py-3 px-4 text-center"><span class="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-800 rounded-md">${item.estimasi}</span></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderTablePersediaan() {
-            const tbody = document.getElementById('tablePersediaan');
-            dataPersediaan.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-950/50";
-                tr.innerHTML = `
-                    <td class="py-3.5 px-4 font-medium">${item.bulan} 2026</td>
-                    <td class="py-3.5 px-4 text-right">${item.tepung_jadi.toLocaleString('id-ID')}</td>
-                    <td class="py-3.5 px-4 text-right">${item.tepung_merah.toLocaleString('id-ID')}</td>
-                    <td class="py-3.5 px-4 text-right font-bold text-blue-600 dark:text-blue-400">${item.total_out.toLocaleString('id-ID')}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderTablePemakaian() {
-            const tbody = document.getElementById('tablePemakaian');
-            dataPemakaian.forEach((item) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-950/50";
-                tr.innerHTML = `
-                    <td class="py-3 px-4">${item.no}</td>
-                    <td class="py-3 px-4 font-bold">${item.name}</td>
-                    <td class="py-3 px-4 text-center text-xs">${item.unit}</td>
-                    <td class="py-3 px-4 text-right">${item.apr.toLocaleString('id-ID')}</td>
-                    <td class="py-3 px-4 text-right">${item.mei.toLocaleString('id-ID')}</td>
-                    <td class="py-3 px-4 text-right">${item.jun.toLocaleString('id-ID')}</td>
-                    <td class="py-3 px-4 text-right">${item.jul.toLocaleString('id-ID')}</td>
-                    <td class="py-3 px-4 text-right">${item.ags.toLocaleString('id-ID')}</td>
-                    <td class="py-3 px-4 text-right font-bold text-orange-600">${item.avg}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderHargaBadge(m) {
-            if (!m || m.st === "Tetap") return `<div class="text-center">Rp ${m.p} <span class="text-slate-400">(-)</span></div>`;
-            return `<div class="text-center"><span class="font-bold text-rose-600">Rp ${m.p}</span> <span class="px-1 text-[9px] bg-rose-100 text-rose-700 rounded">NAIK</span></div>`;
-        }
-
-        function renderTableHarga(filter = '') {
-            const tbody = document.getElementById('tableHarga');
-            tbody.innerHTML = '';
-            const list = dataHarga.filter(i => i.name.toLowerCase().includes(filter.toLowerCase()));
-            list.forEach((item) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 dark:hover:bg-navy-950/50";
-                tr.innerHTML = `
-                    <td class="py-3 px-3">${item.no}</td>
-                    <td class="py-3 px-3 font-bold">${item.name}</td>
-                    <td class="py-3 px-3">${renderHargaBadge(item.mei)}</td>
-                    <td class="py-3 px-3">${renderHargaBadge(item.jun)}</td>
-                    <td class="py-3 px-3">${renderHargaBadge(item.jul)}</td>
-                    <td class="py-3 px-3">${renderHargaBadge(item.ags)}</td>
-                    <td class="py-3 px-3">${renderHargaBadge(item.sep)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
+        // EVENTS + INITIAL LOAD
         document.getElementById('searchHarga').addEventListener('input', (e) => {
-            renderTableHarga(e.target.value);
+            renderTableHarga(state.data?.harga || [], e.target.value);
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            loadDashboard(true);
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderTableWilayah();
-            renderTablePersediaan();
-            renderTablePemakaian();
-            renderTableHarga();
-            
-            // Render Chart
-            new Chart(document.getElementById('tonaseChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Mei 2026', 'Juni 2026', 'Juli 2026', 'Agustus 2026'],
-                    datasets: [{ label: 'Total Tonase (Kg)', data: [21266, 16621, 11856, 17519], backgroundColor: '#ea580c', borderRadius: 8 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
+            loadDashboard(false);
+
+            // Sinkronisasi otomatis setiap 60 detik.
+            setInterval(() => {
+                if (navigator.onLine && !state.loading) loadDashboard(false);
+            }, 60000);
         });
 
         // PWA: install prompt + offline status + service worker
