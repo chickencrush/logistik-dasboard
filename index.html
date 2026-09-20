@@ -350,7 +350,7 @@ main{padding:1rem!important}
         /* =========================
            DATA API / STATE
            ========================= */
-        const API_URL = localStorage.getItem('cc_logistik_api_url') || 'PASTE_APPS_SCRIPT_EXEC_URL_HERE';
+        const API_URL = localStorage.getItem('cc_logistik_api_url') || '1SKOsJo5RtxZVB1P_g7cQMVfiUgetepw5S5kYNa66R1w';
 
         const state = {
             data: null,
@@ -412,7 +412,7 @@ main{padding:1rem!important}
         }
 
         async function loadDashboard(forceRefresh = false) {
-            if (API_URL === 'PASTE_APPS_SCRIPT_EXEC_URL_HERE') {
+            if (API_URL === 'https://script.google.com/macros/s/AKfycby7et1ZuIWKkO9jyNdZTVlB7GkeBSeDcGOiaPb-pvYMhVwvFKCHhgaTwvl2YPG-qlM4/exec') {
                 setApiStatus(false, 'API: SET URL');
                 document.getElementById('lastUpdated').textContent = 'URL API belum diatur';
                 return;
