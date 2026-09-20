@@ -1,4 +1,4 @@
-# Chicken Crush Logistik — API FIX V5
+# Chicken Crush Logistik — MOBILE UI V6
 
 Endpoint API produksi sudah dipasang otomatis:
 
@@ -7,6 +7,8 @@ Endpoint API produksi sudah dipasang otomatis:
 ## Perbaikan API
 
 Dashboard sudah memiliki endpoint produksi. Pengguna tidak perlu memasukkan URL `/exec`.
+
+Versi ini menambahkan sidebar mobile yang lebih ramping, backdrop yang dapat diketuk untuk menutup menu, menu otomatis tertutup setelah dipilih, dan ikon aplikasi maskot profesional.
 
 1. Buka Spreadsheet sumber > Ekstensi > Apps Script.
 2. Ganti Code.gs dengan Code.gs paket ini.

@@ -41,9 +41,31 @@
         .view-panel.active { display: block; }
     
         @media (max-width: 1023px) {
-            #sidebar { transform: translateX(-100%); }
+            #sidebar {
+                width: min(64vw, 224px) !important;
+                transform: translateX(-105%);
+                border-radius: 0 22px 22px 0;
+            }
             #sidebar.mobile-open { transform: translateX(0); }
             #mainContent { padding-left: 0 !important; }
+            #sidebarBackdrop {
+                position: fixed;
+                inset: 0;
+                z-index: 35;
+                background: rgba(2, 6, 23, .48);
+                backdrop-filter: blur(2px);
+                -webkit-backdrop-filter: blur(2px);
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity .25s ease, visibility .25s ease;
+            }
+            #sidebarBackdrop.show { opacity: 1; visibility: visible; }
+            body.drawer-open { overflow: hidden; }
+            #sidebar nav { padding: .65rem !important; }
+            #sidebar .nav-btn { gap: .65rem !important; padding: .68rem .72rem !important; }
+            #sidebar .nav-btn i { font-size: 1rem !important; }
+            #sidebar .nav-btn span { font-size: .68rem; white-space: normal !important; line-height: 1.25; text-align: left; }
+            #collapseSidebarBtn { display: none; }
         }
         @media (display-mode: standalone) {
             body { padding-top: env(safe-area-inset-top); }
@@ -90,6 +112,7 @@ main{padding:1rem!important}
 #headerTitle{font-size:.9rem!important;max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .view-panel{border-radius:1rem!important}
 .view-panel>div:first-child{padding:1rem!important}
+#sidebar{width:min(62vw,214px)!important}
 }
 </style>
 
@@ -111,7 +134,7 @@ main{padding:1rem!important}
     <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 z-40 transition-all duration-300 border-r border-slate-800 shadow-xl">
         <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800/80 bg-slate-950/50">
             <div class="flex items-center gap-3 sidebar-text overflow-hidden">
-                <div class="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white font-black shadow-lg shadow-orange-500/20">CC</div>
+                <img src="icon-192.png" alt="Chicken Crush Logistik" class="w-9 h-9 shrink-0 rounded-xl object-cover ring-1 ring-white/15 shadow-lg shadow-orange-500/10">
                 <div class="whitespace-nowrap">
                     <h1 class="font-bold text-sm text-white leading-tight">Chicken Crush</h1>
                     <p class="text-[11px] text-amber-500 font-medium">Logistik Dashboard</p>
@@ -158,6 +181,7 @@ main{padding:1rem!important}
             </button>
         </nav>
     </aside>
+    <div id="sidebarBackdrop" aria-hidden="true"></div>
 
     <div id="mainContent" class="flex-1 flex flex-col pl-64 min-w-0 transition-all duration-300">
         <header class="h-16 bg-white dark:bg-navy-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between shadow-sm">
@@ -864,7 +888,14 @@ main{padding:1rem!important}
         const collapseSidebarBtn = document.getElementById('collapseSidebarBtn');
         const collapseIcon = document.getElementById('collapseIcon');
         const sidebarTexts = document.querySelectorAll('.sidebar-text');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
         let isCollapsed = false;
+
+        function setMobileSidebar(open) {
+            sidebar.classList.toggle('mobile-open', open);
+            sidebarBackdrop.classList.toggle('show', open);
+            document.body.classList.toggle('drawer-open', open);
+        }
 
         function toggleSidebar() {
             isCollapsed = !isCollapsed;
@@ -882,12 +913,13 @@ main{padding:1rem!important}
         }
         collapseSidebarBtn.addEventListener('click', toggleSidebar);
         document.getElementById('toggleSidebarMobile').addEventListener('click', () => {
-            sidebar.classList.toggle('mobile-open');
+            setMobileSidebar(!sidebar.classList.contains('mobile-open'));
         });
+        sidebarBackdrop.addEventListener('click', () => setMobileSidebar(false));
         document.addEventListener('click', (e) => {
             if (window.innerWidth < 1024 && sidebar.classList.contains('mobile-open')) {
                 if (!sidebar.contains(e.target) && !document.getElementById('toggleSidebarMobile').contains(e.target)) {
-                    sidebar.classList.remove('mobile-open');
+                    setMobileSidebar(false);
                 }
             }
         });
@@ -915,6 +947,7 @@ main{padding:1rem!important}
             activeNav.classList.remove('text-slate-400');
             activeNav.classList.add('bg-orange-600', 'text-white', 'shadow-md');
             document.getElementById('headerTitle').innerText = titles[tabId];
+            if (window.innerWidth < 1024) setMobileSidebar(false);
         }
 
         // EVENTS + INITIAL LOAD
