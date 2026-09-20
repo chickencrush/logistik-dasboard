@@ -31,8 +31,7 @@
                     }
                 }
             }
-        }
-    </script>
+        }</script>
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -251,7 +250,16 @@ main{padding:1rem!important}
                     </div>
                     <div class="lg:col-span-2 bg-white dark:bg-navy-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
                         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <h4 class="font-bold text-slate-900 dark:text-white"><i class="ph-bold ph-chart-bar text-orange-500"></i> Tren Tonase (Mei - Ags 2026)</h4>
+                            <div class="flex items-center justify-between gap-3 flex-wrap">
+  <h4 id="trendTitle" class="font-bold text-slate-900 dark:text-white"><i class="ph-bold ph-chart-bar text-orange-500"></i> Tren Tonase (Mei - Ags 2026)</h4>
+  <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+    <span>View:</span>
+    <select id="trendMetric" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-navy-950 dark:text-slate-100">
+      <option value="tonase">Tonase</option>
+      <option value="value">Value</option>
+    </select>
+  </label>
+</div>
                         </div>
                         <div class="relative h-64 mt-4"><canvas id="tonaseChart"></canvas></div>
                     </div>
@@ -350,7 +358,7 @@ main{padding:1rem!important}
         /* =========================
            DATA API / STATE
            ========================= */
-        const API_URL = localStorage.getItem('cc_logistik_api_url') || '1SKOsJo5RtxZVB1P_g7cQMVfiUgetepw5S5kYNa66R1w';
+        const API_URL = 'https://script.google.com/macros/s/AKfycby7et1ZuIWKkO9jyNdZTVlB7GkeBSeDcGOiaPb-pvYMhWwvFKCHhgaTwvl2YPG-qlM4/exec';
 
         const state = {
             data: null,
@@ -411,8 +419,38 @@ main{padding:1rem!important}
             if (btn) btn.disabled = isLoading;
         }
 
+
+        function loadApiJsonp(urlString) {
+            return new Promise((resolve, reject) => {
+                const callbackName = '__ccApiCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+                const script = document.createElement('script');
+                const separator = urlString.includes('?') ? '&' : '?';
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('API tidak merespons (timeout JSONP)'));
+                }, 15000);
+
+                function cleanup() {
+                    clearTimeout(timeout);
+                    delete window[callbackName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                }
+
+                window[callbackName] = (data) => {
+                    cleanup();
+                    resolve(data);
+                };
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('Tidak dapat mengakses Google Apps Script API'));
+                };
+                script.src = urlString + separator + 'callback=' + encodeURIComponent(callbackName);
+                document.head.appendChild(script);
+            });
+        }
+
         async function loadDashboard(forceRefresh = false) {
-            if (API_URL === 'https://script.google.com/macros/s/AKfycby7et1ZuIWKkO9jyNdZTVlB7GkeBSeDcGOiaPb-pvYMhVwvFKCHhgaTwvl2YPG-qlM4/exec') {
+            if (API_URL === 'PASTE_APPS_SCRIPT_EXEC_URL_HERE') {
                 setApiStatus(false, 'API: SET URL');
                 document.getElementById('lastUpdated').textContent = 'URL API belum diatur';
                 return;
@@ -423,22 +461,25 @@ main{padding:1rem!important}
                 const url = new URL(API_URL);
                 if (forceRefresh) url.searchParams.set('refresh', '1');
                 else url.searchParams.delete('refresh');
+                let json;
+                try {
+                    const response = await fetch(url.toString(), {
+                        method: 'GET',
+                        cache: 'no-store'
+                    });
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    json = await response.json();
+                } catch (fetchError) {
+                    // Fallback JSONP untuk browser/GitHub Pages jika fetch diblokir CORS
+                    json = await loadApiJsonp(url.toString());
+                }
 
-                const response = await fetch(url.toString(), {
-                    method: 'GET',
-                    cache: 'no-store'
-                });
-
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-
-                const json = await response.json();
-                if (json.status !== 'success') {
-                    throw new Error(json.message || 'API mengembalikan error');
+                if (!json || json.status !== 'success') {
+                    throw new Error((json && json.message) || 'API mengembalikan error');
                 }
 
                 state.data = json;
                 state.lastLoaded = new Date();
-
                 renderDashboard(json);
                 setApiStatus(true, 'API: ONLINE');
                 document.getElementById('lastUpdated').textContent =
@@ -460,7 +501,7 @@ main{padding:1rem!important}
             renderTableHarga(data.harga || [], document.getElementById('searchHarga')?.value || '');
             renderOutlet(data.outlet || []);
             renderPriceSummary(data.harga || []);
-            renderTonaseChart(data.poBulanan || []);
+            renderTonaseChart(data.poBulanan || [], document.getElementById('trendMetric')?.value || 'tonase');
         }
 
         function renderOverview(data) {
@@ -708,12 +749,12 @@ main{padding:1rem!important}
             }
         }
 
-        function renderTonaseChart(monthly) {
+        function renderTonaseChart(monthly, metric = 'tonase') {
             const canvas = document.getElementById('tonaseChart');
             if (!canvas || typeof Chart === 'undefined') return;
 
             const labels = monthly.map(x => x.bulan);
-            const values = monthly.map(x => num(x.tonase));
+            const values = monthly.map(x => metric === 'value' ? num(x.value ?? x.nilai ?? x.totalValue ?? 0) : num(x.tonase));
 
             if (state.chart) state.chart.destroy();
 
@@ -722,7 +763,7 @@ main{padding:1rem!important}
                 data: {
                     labels,
                     datasets: [{
-                        label: 'Total Tonase (Kg)',
+                        label: metric === 'value' ? 'Total Value (Rp)' : 'Total Tonase (Kg)',
                         data: values,
                         backgroundColor: '#ea580c',
                         borderRadius: 8,
@@ -736,7 +777,7 @@ main{padding:1rem!important}
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: ctx => ' ' + fmtNum(ctx.raw) + ' Kg'
+                                label: ctx => ' ' + fmtNum(ctx.raw) + (metric === 'value' ? ' Rp' : ' Kg')
                             }
                         }
                     },
@@ -822,6 +863,16 @@ main{padding:1rem!important}
             loadDashboard(true);
         });
 
+        const trendMetric = document.getElementById('trendMetric');
+        if (trendMetric) {
+            trendMetric.addEventListener('change', () => {
+                const metric = trendMetric.value;
+                const title = document.getElementById('trendTitle');
+                if (title) title.innerHTML = `<i class="ph-bold ph-chart-bar text-orange-500"></i> Tren ${metric === 'value' ? 'Value' : 'Tonase'} (Mei - Ags 2026)`;
+                if (state.data) renderTonaseChart(state.data.poBulanan || [], metric);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboard(false);
 
@@ -867,8 +918,6 @@ main{padding:1rem!important}
                 navigator.serviceWorker.register('./sw.js')
                     .catch(err => console.warn('Service Worker gagal didaftarkan:', err));
             });
-        }
-
-    </script>
+        }</script>
 </body>
 </html>
