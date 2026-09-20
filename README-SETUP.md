@@ -1,20 +1,27 @@
-# Chicken Crush Logistik — Realtime PWA
+# Chicken Crush Logistik — API FIX V4
 
-## Konfigurasi API
+## Perbaikan API
 
-Buka `index.html`, cari:
+Dashboard sudah memiliki endpoint utama dan cadangan. Pengguna tidak perlu memasukkan URL `/exec`.
 
-`const API_URL = localStorage.getItem('cc_logistik_api_url') || 'PASTE_APPS_SCRIPT_EXEC_URL_HERE';`
+1. Buka Spreadsheet sumber > Ekstensi > Apps Script.
+2. Ganti Code.gs dengan Code.gs paket ini.
+3. Jalankan fungsi `setupApi` satu kali dan izinkan akses.
+4. Deploy > Manage deployments > Edit > New version > Deploy. Execute as Me; akses Anyone.
+5. Upload index.html, manifest.json, sw.js, dan seluruh ikon ke root GitHub Pages.
+6. Tunggu Pages selesai, tutup tab lama, buka kembali dan tekan Ctrl+F5.
 
-Ganti `PASTE_APPS_SCRIPT_EXEC_URL_HERE` dengan URL Web App Google Apps Script yang berakhiran `/exec`.
-
-Contoh:
-`https://script.google.com/macros/s/XXXXXXXX/exec`
+`setupApi` menyimpan ID Spreadsheet sehingga Web App tidak kehilangan database ketika dipanggil dari GitHub Pages.
 
 Setelah itu upload seluruh isi folder ini ke root repository GitHub Pages.
 
 Dashboard akan:
-- mengambil data dari Google Spreadsheet melalui Code.gs V2
+- mengambil data melalui JSONP sehingga tidak bergantung pada CORS fetch
+- mencoba endpoint cadangan hanya jika endpoint utama gagal/formatnya tidak sesuai
+- menyimpan endpoint terakhir yang berhasil
+- menampilkan data cache terakhir dengan status API: OFFLINE jika jaringan gagal
+- menampilkan pesan diagnosis pada teks waktu pembaruan
+- menggunakan Code.gs V4 dengan Spreadsheet ID tersimpan
 - menampilkan KPI realtime
 - menampilkan PO per wilayah
 - menampilkan persediaan
@@ -23,4 +30,6 @@ Dashboard akan:
 - menampilkan data outlet
 - memperbarui otomatis setiap 60 detik
 - memiliki tombol refresh manual
-- tetap mendukung PWA/offline shell
+- tetap mendukung PWA/offline shell melalui manifest.json dan sw.js yang kini disertakan
+
+Catatan: endpoint harus benar-benar dideploy dengan Code.gs paket ini. Kode GitHub tidak dapat memperbarui deployment Google secara otomatis.

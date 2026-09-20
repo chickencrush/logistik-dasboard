@@ -1,5 +1,5 @@
 /**
- * CHICKEN CRUSH LOGISTIK - API DASHBOARD V2
+ * CHICKEN CRUSH LOGISTIK - API DASHBOARD V4
  * Sumber data : Spreadsheet LAPORAN BULANAN LOGISTIK
  * Mode        : Read-only API (tidak mengubah data spreadsheet)
  * Cocok untuk : GitHub Pages / PWA dashboard
@@ -58,7 +58,7 @@ function doGet(e) {
     if (action === 'ping') {
       return jsonOutput_({
         status: 'success',
-        message: 'Chicken Crush Logistik API V2 aktif',
+        message: 'Chicken Crush Logistik API V4 aktif',
         timestamp: nowIso_()
       }, p.callback);
     }
@@ -94,7 +94,7 @@ function doGet(e) {
  */
 function getDashboardData_(forceRefresh) {
   var cache = CacheService.getScriptCache();
-  var cacheKey = 'cc_logistik_dashboard_v2';
+  var cacheKey = 'cc_logistik_dashboard_v4';
 
   if (!forceRefresh) {
     try {
@@ -103,7 +103,7 @@ function getDashboardData_(forceRefresh) {
     } catch (ignore) {}
   }
 
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
 
   var po = getPoData_(ss);
   var persediaan = getPersediaan_(ss);
@@ -888,6 +888,28 @@ function daysBetween_(a, b) {
 
 function nowIso_() {
   return Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "yyyy-MM-dd'T'HH:mm:ssXXX");
+}
+
+/**
+ * Jalankan setupApi() satu kali dari editor Apps Script setelah Code.gs ditempel.
+ * ID disimpan agar Web App tidak bergantung pada konteks spreadsheet aktif.
+ */
+function setupApi() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('Buka Apps Script dari Spreadsheet sumber, lalu jalankan setupApi kembali.');
+  PropertiesService.getScriptProperties().setProperty('CC_LOGISTIK_SPREADSHEET_ID', ss.getId());
+  CacheService.getScriptCache().remove('cc_logistik_dashboard_v4');
+  return 'API siap: ' + ss.getName();
+}
+
+function getSpreadsheet_() {
+  var id = PropertiesService.getScriptProperties().getProperty('CC_LOGISTIK_SPREADSHEET_ID');
+  if (id) {
+    try { return SpreadsheetApp.openById(id); } catch (ignore) {}
+  }
+  var active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  throw new Error('Spreadsheet belum dikonfigurasi. Jalankan fungsi setupApi() satu kali dari Apps Script yang terikat ke Spreadsheet.');
 }
 
 function jsonOutput_(obj, callback) {

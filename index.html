@@ -358,7 +358,14 @@ main{padding:1rem!important}
         /* =========================
            DATA API / STATE
            ========================= */
-        const API_URL = 'https://script.google.com/macros/s/AKfycby7et1ZuIWKkO9jyNdZTVlB7GkeBSeDcGOiaPb-pvYMhWwvFKCHhgaTwvl2YPG-qlM4/exec';
+        // Endpoint utama dari paket dan endpoint cadangan yang pernah digunakan.
+        // Dashboard memilih endpoint pertama yang aktif DAN format datanya sesuai.
+        const API_ENDPOINTS = [
+            'https://script.google.com/macros/s/AKfycby7et1ZuIWKkO9jyNdZTVlB7GkeBSeDcGOiaPb-pvYMhWwvFKCHhgaTwvl2YPG-qlM4/exec',
+            'https://script.google.com/macros/s/AKfycbzT3RZnCOLP0IdC7hekehWK85Lzc4tLuwx_47HLkKBR_bURKpM_PHDLeYzYwIN_iiTp/exec'
+        ];
+        const API_CACHE_KEY = 'cc_logistik_api_v4_last_good';
+        const DATA_CACHE_KEY = 'cc_logistik_api_v4_data';
 
         const state = {
             data: null,
@@ -405,6 +412,9 @@ main{padding:1rem!important}
             const el = document.getElementById('apiStatus');
             if (!el) return;
             el.textContent = text || (ok ? 'API: ONLINE' : 'API: ERROR');
+            el.title = ok
+                ? 'Database Google Spreadsheet terhubung'
+                : 'Koneksi API gagal. Lihat keterangan waktu pembaruan.';
             el.className = 'text-[10px] font-bold px-2 py-1 rounded-lg ' +
                 (ok
                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
@@ -420,19 +430,65 @@ main{padding:1rem!important}
         }
 
 
-        function loadApiJsonp(urlString) {
+        function safeReadStorage(key) {
+            try { return localStorage.getItem(key); } catch (error) { return null; }
+        }
+
+        function safeWriteStorage(key, value) {
+            try { localStorage.setItem(key, value); return true; } catch (error) { return false; }
+        }
+
+        function validApiUrl(value) {
+            try {
+                const url = new URL(value);
+                return url.protocol === 'https:' &&
+                    url.hostname === 'script.google.com' &&
+                    /^\/macros\/s\/[^/]+\/exec$/.test(url.pathname);
+            } catch (error) { return false; }
+        }
+
+        function normalizeApiResponse(json) {
+            // Mendukung response V2: {status:'success', ...}
+            if (json && json.status === 'success') return json;
+            // Mendukung wrapper: {ok:true,data:{status:'success', ...}}
+            if (json && json.ok === true && json.data && json.data.status === 'success') return json.data;
+            throw new Error((json && (json.message || json.error)) || 'Format respons API tidak sesuai');
+        }
+
+        function validateDashboardPayload(json) {
+            if (!json || json.status !== 'success') throw new Error('Status API bukan success');
+            if (!json.overview || !Array.isArray(json.wilayah) || !Array.isArray(json.persediaan)) {
+                throw new Error('Endpoint aktif tetapi bukan API Logistik V2/V4');
+            }
+            return json;
+        }
+
+        function apiCandidates() {
+            const preferred = safeReadStorage(API_CACHE_KEY);
+            return [preferred, ...API_ENDPOINTS]
+                .filter(validApiUrl)
+                .filter((url, index, list) => list.indexOf(url) === index);
+        }
+
+        function loadApiJsonp(urlString, forceRefresh = false) {
             return new Promise((resolve, reject) => {
                 const callbackName = '__ccApiCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
                 const script = document.createElement('script');
-                const separator = urlString.includes('?') ? '&' : '?';
+                const url = new URL(urlString);
+                url.searchParams.set('callback', callbackName);
+                url.searchParams.set('action', 'dashboard');
+                url.searchParams.set('t', String(Date.now()));
+                if (forceRefresh) url.searchParams.set('refresh', '1');
                 const timeout = setTimeout(() => {
                     cleanup();
                     reject(new Error('API tidak merespons (timeout JSONP)'));
-                }, 15000);
+                }, 30000);
 
                 function cleanup() {
                     clearTimeout(timeout);
-                    delete window[callbackName];
+                    // Pertahankan no-op sementara agar response terlambat tidak menyebabkan ReferenceError.
+                    window[callbackName] = function() {};
+                    setTimeout(() => { try { delete window[callbackName]; } catch (ignore) {} }, 60000);
                     if (script.parentNode) script.parentNode.removeChild(script);
                 }
 
@@ -444,50 +500,59 @@ main{padding:1rem!important}
                     cleanup();
                     reject(new Error('Tidak dapat mengakses Google Apps Script API'));
                 };
-                script.src = urlString + separator + 'callback=' + encodeURIComponent(callbackName);
+                script.referrerPolicy = 'no-referrer';
+                script.src = url.toString();
                 document.head.appendChild(script);
             });
         }
 
-        async function loadDashboard(forceRefresh = false) {
-            if (API_URL === 'PASTE_APPS_SCRIPT_EXEC_URL_HERE') {
-                setApiStatus(false, 'API: SET URL');
-                document.getElementById('lastUpdated').textContent = 'URL API belum diatur';
-                return;
+        async function connectApi(forceRefresh) {
+            const errors = [];
+            for (const endpoint of apiCandidates()) {
+                try {
+                    const raw = await loadApiJsonp(endpoint, forceRefresh);
+                    const data = validateDashboardPayload(normalizeApiResponse(raw));
+                    safeWriteStorage(API_CACHE_KEY, endpoint);
+                    return data;
+                } catch (error) {
+                    errors.push(error && error.message ? error.message : String(error));
+                }
             }
+            throw new Error(errors.length ? errors.join(' | ') : 'Tidak ada URL API yang valid');
+        }
 
+        async function loadDashboard(forceRefresh = false) {
             setLoading(true);
             try {
-                const url = new URL(API_URL);
-                if (forceRefresh) url.searchParams.set('refresh', '1');
-                else url.searchParams.delete('refresh');
-                let json;
-                try {
-                    const response = await fetch(url.toString(), {
-                        method: 'GET',
-                        cache: 'no-store'
-                    });
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    json = await response.json();
-                } catch (fetchError) {
-                    // Fallback JSONP untuk browser/GitHub Pages jika fetch diblokir CORS
-                    json = await loadApiJsonp(url.toString());
-                }
-
-                if (!json || json.status !== 'success') {
-                    throw new Error((json && json.message) || 'API mengembalikan error');
-                }
+                const json = await connectApi(forceRefresh);
 
                 state.data = json;
                 state.lastLoaded = new Date();
+                safeWriteStorage(DATA_CACHE_KEY, JSON.stringify(json));
                 renderDashboard(json);
                 setApiStatus(true, 'API: ONLINE');
                 document.getElementById('lastUpdated').textContent =
                     state.lastLoaded.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
             } catch (error) {
                 console.error('Gagal mengambil data dashboard:', error);
-                setApiStatus(false, 'API: ERROR');
-                document.getElementById('lastUpdated').textContent = 'Gagal memuat data';
+                let cached = null;
+                try { cached = JSON.parse(safeReadStorage(DATA_CACHE_KEY) || 'null'); } catch (ignore) {}
+                if (cached) {
+                    try {
+                        cached = validateDashboardPayload(cached);
+                        state.data = cached;
+                        renderDashboard(cached);
+                        setApiStatus(false, 'API: OFFLINE');
+                        document.getElementById('lastUpdated').textContent =
+                            'Menampilkan data tersimpan • ' + (error.message || 'Koneksi gagal');
+                    } catch (cacheError) {
+                        setApiStatus(false, 'API: ERROR');
+                        document.getElementById('lastUpdated').textContent = error.message || 'Gagal memuat data';
+                    }
+                } else {
+                    setApiStatus(false, 'API: ERROR');
+                    document.getElementById('lastUpdated').textContent = error.message || 'Gagal memuat data';
+                }
             } finally {
                 setLoading(false);
             }
