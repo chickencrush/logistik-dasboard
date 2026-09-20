@@ -1,8 +1,12 @@
-# Chicken Crush Logistik — API FIX V4
+# Chicken Crush Logistik — API FIX V5
+
+Endpoint API produksi sudah dipasang otomatis:
+
+`https://script.google.com/macros/s/AKfycbx7TbKQ8SUMH6QYlBlAQeji10JMAAOOAOdUbmrQE53XX_LrT5CDNQRrX6LBr4-EVTor/exec`
 
 ## Perbaikan API
 
-Dashboard sudah memiliki endpoint utama dan cadangan. Pengguna tidak perlu memasukkan URL `/exec`.
+Dashboard sudah memiliki endpoint produksi. Pengguna tidak perlu memasukkan URL `/exec`.
 
 1. Buka Spreadsheet sumber > Ekstensi > Apps Script.
 2. Ganti Code.gs dengan Code.gs paket ini.
@@ -17,7 +21,7 @@ Setelah itu upload seluruh isi folder ini ke root repository GitHub Pages.
 
 Dashboard akan:
 - mengambil data melalui JSONP sehingga tidak bergantung pada CORS fetch
-- mencoba endpoint cadangan hanya jika endpoint utama gagal/formatnya tidak sesuai
+- menggunakan endpoint produksi API V4 yang sudah aktif
 - menyimpan endpoint terakhir yang berhasil
 - menampilkan data cache terakhir dengan status API: OFFLINE jika jaringan gagal
 - menampilkan pesan diagnosis pada teks waktu pembaruan

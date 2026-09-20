@@ -358,14 +358,12 @@ main{padding:1rem!important}
         /* =========================
            DATA API / STATE
            ========================= */
-        // Endpoint utama dari paket dan endpoint cadangan yang pernah digunakan.
-        // Dashboard memilih endpoint pertama yang aktif DAN format datanya sesuai.
+        // Endpoint produksi API V4.
         const API_ENDPOINTS = [
-            'https://script.google.com/macros/s/AKfycby7et1ZuIWKkO9jyNdZTVlB7GkeBSeDcGOiaPb-pvYMhWwvFKCHhgaTwvl2YPG-qlM4/exec',
-            'https://script.google.com/macros/s/AKfycbzT3RZnCOLP0IdC7hekehWK85Lzc4tLuwx_47HLkKBR_bURKpM_PHDLeYzYwIN_iiTp/exec'
+            'https://script.google.com/macros/s/AKfycbx7TbKQ8SUMH6QYlBlAQeji10JMAAOOAOdUbmrQE53XX_LrT5CDNQRrX6LBr4-EVTor/exec'
         ];
-        const API_CACHE_KEY = 'cc_logistik_api_v4_last_good';
-        const DATA_CACHE_KEY = 'cc_logistik_api_v4_data';
+        const API_CACHE_KEY = 'cc_logistik_api_v5_last_good';
+        const DATA_CACHE_KEY = 'cc_logistik_api_v5_data';
 
         const state = {
             data: null,
