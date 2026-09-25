@@ -1,1 +1,25 @@
-{"id":"./","name":"CC Logistik — Chicken Crush","short_name":"CC Logistik","description":"Dashboard profesional logistik Chicken Crush • V4","start_url":"./","scope":"./","display":"standalone","background_color":"#f5f6fa","theme_color":"#101c30","icons":[{"src":"assets/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"assets/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}]}
+{
+  "id": "./",
+  "name": "CrushOps",
+  "short_name": "CrushOps",
+  "description": "Laporan pekerjaan Chicken Crush",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101a35",
+  "theme_color": "#c90014",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
